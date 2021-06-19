@@ -15,7 +15,7 @@ spec:
   project: system
   source:
     path: deployments/system/ingress-nginx
-    repoURL: https://github.com/spoukke/kuberntes-cluster-state.git
+    repoURL: https://github.com/spoukke/kubernetes-cluster-state.git
     targetRevision: master
     helm:
       valueFiles:
