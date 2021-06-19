@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  annotations:
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/image-list: ingress-nginx=k8s.gcr.io/ingress-nginx/controller:v0.x.x
+    argocd-image-updater.argoproj.io/ingress-nginx.update-strategy: semver
+    argocd-image-updater.argoproj.io/ingress-nginx.helm.image-name: ingress-nginx.image.name
+    argocd-image-updater.argoproj.io/ingress-nginx.helm.image-tag: ingress-nginx.image.tag
+spec:
+  destination:
+    namespace: system
+    server: https://kubernetes.default.svc
+  project: system
+  source:
+    path: deployments/system/ingress-nginx
+    repoURL: https://github.com/spoukke/kuberntes-cluster-state.git
+    targetRevision: master
+    helm:
+      valueFiles:
+      - values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

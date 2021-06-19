@@ -1,0 +1,182 @@
+ingress-nginx:  
+  controller:
+    name: controller
+    image:
+      repository: k8s.gcr.io/ingress-nginx/controller
+      tag: "v0.46.0"
+      digest: sha256:52f0058bed0a17ab0fb35628ba97e8d52b5d32299fbc03cc0f6c7b9ff036b61a
+      pullPolicy: IfNotPresent
+      # www-data -> uid 101
+      runAsUser: 101
+      allowPrivilegeEscalation: true
+
+    # Configures the controller container name
+    containerName: ingress-nginx-controller
+
+    # Configures the ports the nginx-controller listens on
+    containerPort:
+      http: 80
+      https: 443
+
+    # Will add custom headers before sending traffic to backends according to https://github.com/kubernetes/ingress-nginx/tree/master/docs/examples/customization/custom-headers
+    proxySetHeaders: {}
+
+    # Will add custom headers before sending response traffic to the client according to: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#add-headers
+    addHeaders: {}
+
+    ## Name of the ingress class to route through this controller
+    ##
+    ingressClass: nginx
+
+    #extraArgs:
+    #  default-ssl-certificate: "system/wildcard-certificate-tls"
+
+    publishService:
+      enabled: true
+
+    livenessProbe:
+      failureThreshold: 5
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+      port: 10254
+    readinessProbe:
+      failureThreshold: 3
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+      port: 10254
+
+    replicaCount: 1
+
+    minAvailable: 1
+
+    service:
+      enabled: true
+
+      annotations: {}
+      labels: {}
+      # clusterIP: ""
+
+      ## List of IP addresses at which the controller services are available
+      ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+      ##
+      externalIPs: []
+
+      # loadBalancerIP: ""
+      loadBalancerSourceRanges: []
+
+      enableHttp: true
+      enableHttps: true
+
+      ## Set external traffic policy to: "Local" to preserve source IP on
+      ## providers supporting it
+      ## Ref: https://kubernetes.io/docs/tutorials/services/source-ip/#source-ip-for-services-with-typeloadbalancer
+      externalTrafficPolicy: "Local"
+
+      # Must be either "None" or "ClientIP" if set. Kubernetes will default to "None".
+      # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies
+      # sessionAffinity: ""
+
+      # specifies the health check node port (numeric port number) for the service. If healthCheckNodePort isn’t specified,
+      # the service controller allocates a port from your cluster’s NodePort range.
+      # Ref: https://kubernetes.io/docs/tasks/access-application-cluster/create-external-load-balancer/#preserving-the-client-source-ip
+      # healthCheckNodePort: 0
+
+      ports:
+        http: 80
+        https: 443
+
+      targetPorts:
+        http: http
+        https: https
+
+      type: NodePort
+
+      # type: NodePort
+      # nodePorts:
+      #   http: 32080
+      #   https: 32443
+      #   tcp:
+      #     8080: 32808
+      nodePorts:
+        http: ""
+        https: ""
+        tcp: {}
+        udp: {}
+
+      ## Enables an additional internal load balancer (besides the external one).
+      ## Annotations are mandatory for the load balancer to come up. Varies with the cloud service.
+      internal:
+        enabled: false
+        annotations: {}
+
+        # loadBalancerIP: ""
+
+        ## Restrict access For LoadBalancer service. Defaults to 0.0.0.0/0.
+        loadBalancerSourceRanges: []
+
+        ## Set external traffic policy to: "Local" to preserve source IP on
+        ## providers supporting it
+        ## Ref: https://kubernetes.io/docs/tutorials/services/source-ip/#source-ip-for-services-with-typeloadbalancer
+        # externalTrafficPolicy: ""
+
+      prometheusRule:
+        enabled: false
+        additionalLabels: {}
+        # namespace: ""
+        rules: []
+          # # These are just examples rules, please adapt them to your needs
+          # - alert: NGINXConfigFailed
+          #   expr: count(nginx_ingress_controller_config_last_reload_successful == 0) > 0
+          #   for: 1s
+          #   labels:
+          #     severity: critical
+          #   annotations:
+          #     description: bad ingress config - nginx config test failed
+          #     summary: uninstall the latest ingress changes to allow config reloads to resume
+          # - alert: NGINXCertificateExpiry
+          #   expr: (avg(nginx_ingress_controller_ssl_expire_time_seconds) by (host) - time()) < 604800
+          #   for: 1s
+          #   labels:
+          #     severity: critical
+          #   annotations:
+          #     description: ssl certificate(s) will expire in less then a week
+          #     summary: renew expiring certificates to avoid downtime
+          # - alert: NGINXTooMany500s
+          #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"5.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+          #   for: 1m
+          #   labels:
+          #     severity: warning
+          #   annotations:
+          #     description: Too many 5XXs
+          #     summary: More than 5% of all requests returned 5XX, this requires your attention
+          # - alert: NGINXTooMany400s
+          #   expr: 100 * ( sum( nginx_ingress_controller_requests{status=~"4.+"} ) / sum(nginx_ingress_controller_requests) ) > 5
+          #   for: 1m
+          #   labels:
+          #     severity: warning
+          #   annotations:
+          #     description: Too many 4XXs
+          #     summary: More than 5% of all requests returned 4XX, this requires your attention
+
+
+  ## Enable RBAC as per https://github.com/kubernetes/ingress/tree/master/examples/rbac/nginx and https://github.com/kubernetes/ingress/issues/266
+  rbac:
+    create: true
+    scope: false
+
+  # If true, create & use Pod Security Policy resources
+  # https://kubernetes.io/docs/concepts/policy/pod-security-policy/
+  podSecurityPolicy:
+    enabled: false
+
+  serviceAccount:
+    create: true
+    name: "ingress-nginx-controller"
+    automountServiceAccountToken: true
+
+  defaultBackend:
+    enabled: true
