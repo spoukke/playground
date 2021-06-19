@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argo
+  name: argocd
 spec:
   destination:
     namespace: argocd
     server: https://kubernetes.default.svc
   project: argocd
   source:
-    path: deployments/argocd/argo/
+    path: deployments/argocd/argocd/
     repoURL: https://github.com/spoukke/kuberntes-cluster-state.git
     targetRevision: master
   syncPolicy:
