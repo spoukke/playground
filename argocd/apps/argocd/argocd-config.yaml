@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-config
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: argocd
+  source:
+    path: argocd/
+    repoURL: https://github.com/spoukke/kuberntes-cluster-state.git
+    targetRevision: master
+    directory:
+      recurse: true
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
