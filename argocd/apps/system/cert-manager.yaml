@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  annotations:
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/image-list: cert-manager=quay.io/jetstack/cert-manager-controller:v1.3.x
+    argocd-image-updater.argoproj.io/cert-manager.update-strategy: semver
+    argocd-image-updater.argoproj.io/cert-manager.helm.image-name: cert-manager.image.name
+    argocd-image-updater.argoproj.io/cert-manager.helm.image-tag: cert-manager.image.tag
+spec:
+  destination:
+    namespace: system
+    server: https://kubernetes.default.svc
+  project: system
+  source:
+    path: deployments/system/cert-manager
+    repoURL: https://github.com/spoukke/kubernetes-cluster-state.git
+    targetRevision: master
+    helm:
+      valueFiles:
+      - values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
