@@ -3,7 +3,7 @@ kind: Application
 metadata:
   name: ingress-nginx
   annotations:
-    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
     argocd-image-updater.argoproj.io/image-list: ingress-nginx=k8s.gcr.io/ingress-nginx/controller:v0.46.x
     argocd-image-updater.argoproj.io/ingress-nginx.update-strategy: semver
     argocd-image-updater.argoproj.io/ingress-nginx.helm.image-name: ingress-nginx.image.name
